@@ -1,6 +1,6 @@
 #Stock bot
 #@author Robert Federline
-#@date 6/10/22
+#@date 6/13/22
 #unspagettied as of 6/10/22
 
 import math

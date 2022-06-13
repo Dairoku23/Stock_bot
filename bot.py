@@ -30,9 +30,17 @@ class bot:
         
         #creates files
         self.title = str(self.tic)+"_"+date+".txt"
-        file = open(self.title, "x")
         self.titlep = str(self.tic)+"_prices_"+date+".txt"
-        price_file = open(self.titlep, "x")
+        try:
+            file = open(self.title, "x")
+            price_file = open(self.titlep, "x")
+        except FileExistsError:
+            print("[  RESTART  ]")
+            file = open(self.title, "a")
+            price_file = open(self.titlep, "a")
+            file.write("[  RESTART  ]\n")
+            price_file.write("[  RESTART  ]\n")
+
         file.close()
         price_file.close()
 
@@ -152,7 +160,7 @@ class bot:
 
             #writes price to price file
             price_file = open(self.titlep, "a")
-            price_file.write(str(price)+"\n")
+            price_file.write(str(datetime.datetime.now())+"|"+str(price)+"\n")
             price_file.close() 
 
             #setting up the list the will be used to determine if there is a peak or a low

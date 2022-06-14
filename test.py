@@ -1,6 +1,6 @@
 #Test for stock bot
 #@author Robert Federline
-#@date 6/10/22
+#@date 6/13/22
 #unspagettied as of 6/10/22
 
 import datetime
@@ -98,9 +98,9 @@ while x==1:
 
     #updating bots
     if isOpen==True:
-        print(pshg_bot.check_price(time_elapsed))
-        print(bmea_bot.check_price(time_elapsed))
-        print(iova_bot.check_price(time_elapsed))
+        print(pshg_bot.check_price(time_elapsed,1))
+        print(bmea_bot.check_price(time_elapsed,1))
+        print(iova_bot.check_price(time_elapsed,1))
 
     #delay and updates time
     time_elapsed = time_elapsed+delay

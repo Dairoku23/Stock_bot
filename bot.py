@@ -145,7 +145,7 @@ class bot:
             return str(ct)+COLOR["RED"]+"| Attribute Error"+COLOR["ENDC"]
 
     #used for updating the bot, checking price and buying or selling if the market situation is right
-    def check_price(self,time_elapsed):
+    def check_price(self,time_elapsed,mode):
 
         try:
 
@@ -174,22 +174,60 @@ class bot:
                 self.prices[3] = self.prices[4]
                 self.prices[4] = price               
 
-            #limiter to sell if the stock is after a peak
-            if time_elapsed>(4):
-                if (self.prices[2]>self.prices[0] and self.prices[2]>self.prices[1]):
-                    if (self.prices[2]>self.prices[3] and self.prices[2]>self.prices[4]):
-                        if (self.stock_held>0):
-                            if (price>self.last_buy_price):
-                                self.sell(price)
-                                self.last_sell_price=price
+            #mode 1, sells and buys on the second continuation of the trend
+            if (mode==1):
+                #limiter to sell if the stock is after a peak
+                if time_elapsed>(4):
+                    if (self.prices[2]>self.prices[0] and self.prices[2]>self.prices[1]):
+                        if (self.prices[2]>self.prices[3] and self.prices[2]>self.prices[4]):
+                            if (self.stock_held>0):
+                                if (price>self.last_buy_price):
+                                    self.sell(price)
+                                    self.last_sell_price=price
 
-            #limiter to buy if the stock is after a low
-            if time_elapsed>(4):
-                if (self.prices[2]<self.prices[0] and self.prices[2]<self.prices[1]):
-                    if (self.prices[2]<self.prices[3] and self.prices[2]<self.prices[4]):
-                        if self.balance>0.00:
-                            self.buy(price)
-                            self.last_buy_price=price
+                #limiter to buy if the stock is after a low
+                if time_elapsed>(4):
+                    if (self.prices[2]<self.prices[0] and self.prices[2]<self.prices[1]):
+                        if (self.prices[2]<self.prices[3] and self.prices[2]<self.prices[4]):
+                            if self.balance>0.00:
+                                self.buy(price)
+                                self.last_buy_price=price
+
+            #mode 2, sells and buys on the first change in direction
+            if (mode==2):
+                #limiter to sell if the stock is after a peak
+                if time_elapsed>(4):
+                    if (self.prices[3]>self.prices[0] and self.prices[3]>self.prices[1]):
+                        if (self.prices[3]>self.prices[2] and self.prices[3]>self.prices[4]):
+                            if (self.stock_held>0):
+                                if (price>self.last_buy_price):
+                                    self.sell(price)
+                                    self.last_sell_price=price
+
+                #limiter to buy if the stock is after a low
+                if time_elapsed>(4):
+                    if (self.prices[3]<self.prices[0] and self.prices[3]<self.prices[1]):
+                        if (self.prices[3]<self.prices[2] and self.prices[3]<self.prices[4]):
+                            if self.balance>0.00:
+                                self.buy(price)
+                                self.last_buy_price=price
+
+            #mode 3, compares to the previous price
+            if (mode==3):
+                #limiter to sell if the price is greater than the last price
+                if (self.previous_price<price):
+                    if (self.stock_held>0):
+                        if (price>self.last_buy_price):
+                            self.sell(price)
+                            self.last_sell_price=price
+
+                #limiter to buy if the price is less than the last price
+                if (self.previous_price>price):
+                    if self.balance>0.00:
+                        self.buy(price)
+                        self.last_buy_price=price
+            
+            self.previous_price = price
             
             #returns update string and prints update to file
             ct = datetime.datetime.now()

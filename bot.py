@@ -132,7 +132,7 @@ class bot:
     def start(self):
 
         #sets headers and url
-        self.headers = {"user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36"}
+        self.headers = {} #your headers here
         self.url = "https://www.wsj.com/market-data/quotes/"+self.tic.upper()+"/financials"
 
         try:

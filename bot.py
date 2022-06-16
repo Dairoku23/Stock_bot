@@ -1,6 +1,6 @@
 #Stock bot
 #@author Robert Federline
-#@date 6/13/22
+#@date 6/15/22
 #unspagettied as of 6/10/22
 
 import math
@@ -9,8 +9,10 @@ import datetime
 import requests
 from bs4 import BeautifulSoup
 import os
+#import shutil
 
 os.system("") #makes sure that the ANSI escape sequences work correcly
+
 
 #ANSI escape sequences for color
 COLOR = {
@@ -27,30 +29,45 @@ class bot:
         self.stock_amount = stock_amount
         self.balance = balance
         self.stock_held = stock_held
+        self.last_stock_held = stock_held
         self.tic = tic
         
-        #creates files
+        #creates files   
         self.title = str(self.tic)+"_"+date+".txt"
         self.titlep = str(self.tic)+"_prices_"+date+".txt"
+        self.data_title = str(self.tic)+"_"+date+"_data.txt"
         try:
             file = open(self.title, "x")
             price_file = open(self.titlep, "x")
+            data_file = open(self.data_title, "x")
         except FileExistsError:
             print("[  RESTART  ]")
             file = open(self.title, "a")
             price_file = open(self.titlep, "a")
-            file.write("[  RESTART  ]\n")
-            price_file.write("[  RESTART  ]\n")
+            data_file = open(self.data_title, "a")
+            file.write("[  RESTART  ]")
+            price_file.write("[  RESTART  ]")
+            data_file.write("[  RESTART  ]")
 
         file.close()
         price_file.close()
+        data_file.close()
 
-    #changes files and clears prices list
     def day_change(self,date):
+
+        #for moving datafiles
+        #os.rename("path/to/current/file.foo", "path/to/new/destination/for/file.foo")
+        #os.replace("path/to/current/file.foo", "path/to/new/destination/for/file.foo")
+        #shutil.move("path/to/current/file.foo", "path/to/new/destination/for/file.foo")
+
+        #changes files and clears prices list
+        self.data_title = str(self.tic)+"_"+date+"_data.txt"
+        data_file = open(self.data_title, "x")
         self.title = str(self.tic)+"_"+date+".txt"
         file = open(self.title, "x")
         self.titlep = str(self.tic)+"_prices_"+date+".txt"
         price_file = open(self.titlep, "x")
+        data_file.close()
         file.close()
         price_file.close()
         self.prices.clear()
@@ -75,11 +92,18 @@ class bot:
             file.write(str(ct)+"| Failed buy"+"\n")
             file.close()
         else:
-            print(ct,COLOR["RED"],"| Buy ",self.tic," Price:",price," Amount:",stock," Total:",(stock*price),COLOR["ENDC"])
-            text = str(ct)+"| Buy "+self.tic+" Price:"+str(price)+" Amount:"+str(stock)+" Total:"+str(stock*price)
-            file = open(self.title, "a")
-            file.write(text+"\n")
-            file.close()
+            if (stock==0):
+                print(ct,COLOR["RED"],"| ",self.tic," | Transaction Failed, Insufficent Funds",COLOR["ENDC"])
+                file = open(self.title, "a")
+                file.write(str(ct)+"| Failed buy"+"\n")
+                file.close()
+            else:
+                print(ct,COLOR["RED"],"| Buy ",self.tic," Price:",price," Amount:",stock," Total:",(stock*price),COLOR["ENDC"])
+                text = str(ct)+"| Buy "+self.tic+" Price:"+str(price)+" Amount:"+str(stock)+" Total:"+str(stock*price)
+                file = open(self.title, "a")
+                file.write(text+"\n")
+                file.close()
+                self.last_buy_price=price
 
     #sell method
     def sell(self,price):
@@ -108,7 +132,7 @@ class bot:
     def start(self):
 
         #sets headers and url
-        self.headers = {""} #your headers go here
+        self.headers = {"user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36"}
         self.url = "https://www.wsj.com/market-data/quotes/"+self.tic.upper()+"/financials"
 
         try:
@@ -158,6 +182,7 @@ class bot:
             #finds the price
             results = soup.find(id = "quote_val")
             price = float(results.text)
+            self.previous_price = price
 
             #writes price to price file
             price_file = open(self.titlep, "a")
@@ -191,7 +216,6 @@ class bot:
                         if (self.prices[2]<self.prices[3] and self.prices[2]<self.prices[4]):
                             if self.balance>0.00:
                                 self.buy(price)
-                                self.last_buy_price=price
 
             #mode 2, sells and buys on the first change in direction
             if (mode==2):
@@ -210,7 +234,6 @@ class bot:
                         if (self.prices[3]<self.prices[2] and self.prices[3]<self.prices[4]):
                             if self.balance>0.00:
                                 self.buy(price)
-                                self.last_buy_price=price
 
             #mode 3, compares to the previous price
             if (mode==3):
@@ -225,13 +248,28 @@ class bot:
                 if (self.previous_price>price):
                     if self.balance>0.00:
                         self.buy(price)
-                        self.last_buy_price=price
             
+            if ((self.stock_held*price)+self.balance<400):
+                self.sell(price)
+                self.last_sell_price=price
+            
+            if (self.stock_held>self.last_stock_held):
+                transaction_state = "Buy"
+            if (self.stock_held<self.last_stock_held):
+                transaction_state = "Sell"
+            else:
+                transaction_state = "None"
+
+            self.last_stock_held = self.stock_held
             self.previous_price = price
-            
             #returns update string and prints update to file
             ct = datetime.datetime.now()
             text = str(ct)+"  | "+str(self.tic)+" | min "+str(time_elapsed)+"\tprice:"+str(price)+"\tbalance:"+str(self.balance)+"\tStock Held:"+str(self.stock_held)+"\tMoney in Stocks:"+str(self.stock_held*price)+"\tTotal Balance:"+str((self.stock_held*price)+self.balance)
+
+            data = str(ct)+" Price:"+str(price)+" Tot Balance:"+str((self.stock_held*price)+self.balance)+" "+transaction_state
+            data_file = open(self.data_title, "a")
+            data_file.write(data)
+
             file = open(self.title, "a")
             file.write(text+"\n")
             file.close()
@@ -244,6 +282,9 @@ class bot:
             file = open(self.title, "a")
             file.write(text+"\n")
             file.close()
+            data_file = open(self.data_title, "a")
+            data_file.write(text)
+            data_file.close()
             return str(ct)+COLOR["RED"]+"| Connection Timeout"+COLOR["ENDC"]
         except requests.exceptions.RequestException:
             ct = datetime.datetime.now()
@@ -251,6 +292,9 @@ class bot:
             file = open(self.title, "a")
             file.write(text+"\n")
             file.close()
+            data_file = open(self.data_title, "a")
+            data_file.write(text)
+            data_file.close()
             return str(ct)+COLOR["RED"]+"| Connection Timeout"+COLOR["ENDC"]
         except AttributeError:
             ct = datetime.datetime.now()
@@ -258,4 +302,7 @@ class bot:
             file = open(self.title, "a")
             file.write(text+"\n")
             file.close()
+            data_file = open(self.data_title, "a")
+            data_file.write(text)
+            data_file.close()
             return str(ct)+COLOR["RED"]+"| Attribute Error"+COLOR["ENDC"]

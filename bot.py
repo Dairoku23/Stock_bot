@@ -266,7 +266,7 @@ class bot:
             ct = datetime.datetime.now()
             text = str(ct)+"  | "+str(self.tic)+" | min "+str(time_elapsed)+"\tprice:"+str(price)+"\tbalance:"+str(self.balance)+"\tStock Held:"+str(self.stock_held)+"\tMoney in Stocks:"+str(self.stock_held*price)+"\tTotal Balance:"+str((self.stock_held*price)+self.balance)
 
-            data = str(ct)+" Price:"+str(price)+" Tot Balance:"+str((self.stock_held*price)+self.balance)+" "+transaction_state
+            data = str(ct)+" Price:"+str(price)+" TotBalance:"+str((self.stock_held*price)+self.balance)+" "+transaction_state
             data_file = open(self.data_title, "a")
             data_file.write(data+"\n")
 

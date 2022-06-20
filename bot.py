@@ -47,7 +47,7 @@ class bot:
             data_file = open(self.data_title, "a")
             file.write("[  RESTART  ]")
             price_file.write("[  RESTART  ]")
-            data_file.write("[  RESTART  ]")
+            data_file.write("[  RESTART  ]\n")
 
         file.close()
         price_file.close()
@@ -268,7 +268,7 @@ class bot:
 
             data = str(ct)+" Price:"+str(price)+" Tot Balance:"+str((self.stock_held*price)+self.balance)+" "+transaction_state
             data_file = open(self.data_title, "a")
-            data_file.write(data)
+            data_file.write(data+"\n")
 
             file = open(self.title, "a")
             file.write(text+"\n")
@@ -283,7 +283,7 @@ class bot:
             file.write(text+"\n")
             file.close()
             data_file = open(self.data_title, "a")
-            data_file.write(text)
+            data_file.write(text+"\n")
             data_file.close()
             return str(ct)+COLOR["RED"]+"| Connection Timeout"+COLOR["ENDC"]
         except requests.exceptions.RequestException:
@@ -293,7 +293,7 @@ class bot:
             file.write(text+"\n")
             file.close()
             data_file = open(self.data_title, "a")
-            data_file.write(text)
+            data_file.write(text+"\n")
             data_file.close()
             return str(ct)+COLOR["RED"]+"| Connection Timeout"+COLOR["ENDC"]
         except AttributeError:
@@ -303,6 +303,6 @@ class bot:
             file.write(text+"\n")
             file.close()
             data_file = open(self.data_title, "a")
-            data_file.write(text)
+            data_file.write(text+"\n")
             data_file.close()
             return str(ct)+COLOR["RED"]+"| Attribute Error"+COLOR["ENDC"]
